@@ -19,8 +19,10 @@ class Transaction extends Model
         'tags',
         'status',
         'is_recurring',
-        'attachment_path',
         'is_essential',
+        'attachment_path',
+        'google_drive_file_id',
+        'ocr_raw_text',
         'date',
         'to_account_id'
     ];

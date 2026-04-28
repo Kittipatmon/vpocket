@@ -14,6 +14,9 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('/auth/google', [\App\Http\Controllers\GoogleAuthController::class, 'redirect'])->name('google.redirect');
+Route::get('/auth/google/callback', [\App\Http\Controllers\GoogleAuthController::class, 'callback'])->name('google.callback');
+
 use App\Http\Controllers\DashboardController;
 
 Route::get('/dashboard', [DashboardController::class, 'index'])
@@ -29,6 +32,9 @@ Route::middleware('auth')->group(function () {
     Route::patch('/accounts/{account}', [\App\Http\Controllers\AccountController::class, 'update'])->name('accounts.update');
     Route::delete('/accounts/{account}', [\App\Http\Controllers\AccountController::class, 'destroy'])->name('accounts.destroy');
     
+    Route::post('/transactions', [\App\Http\Controllers\TransactionController::class, 'store'])->name('transactions.store');
+    Route::post('/transactions/scan', [\App\Http\Controllers\TransactionController::class, 'scanSlip'])->name('transactions.scan');
+    Route::patch('/transactions/{transaction}', [\App\Http\Controllers\TransactionController::class, 'update'])->name('transactions.update');
     Route::resource('transactions', \App\Http\Controllers\TransactionController::class)->only(['store', 'update', 'destroy']);
 
     Route::get('/categories', [\App\Http\Controllers\CategoryController::class, 'index'])->name('categories.index');

@@ -1,23 +1,21 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Modal from '@/Components/Modal';
 import InputLabel from '@/Components/InputLabel';
 import TextInput from '@/Components/TextInput';
 import InputError from '@/Components/InputError';
 import PrimaryButton from '@/Components/PrimaryButton';
 import SecondaryButton from '@/Components/SecondaryButton';
-import { useForm } from '@inertiajs/react';
+import { useForm, usePage } from '@inertiajs/react';
 import Swal from 'sweetalert2';
-
-const CATEGORIES = {
-    income: ['เงินเดือน', 'โบนัส', 'ฟรีแลนซ์', 'ขายของ', 'ดอกเบี้ย/ปันผล', 'อื่นๆ'],
-    expense: ['อาหาร', 'เดินทาง', 'ค่าน้ำไฟ', 'บ้าน/เช่า', 'ผ่อน', 'สุขภาพ', 'ช้อปปิ้ง', 'บันเทิง', 'ลงทุน', 'อื่นๆ'],
-    saving: ['เงินออมฉุกเฉิน', 'ฝากประจำ', 'กองทุน', 'หุ้น', 'ทอง', 'Crypto', 'อื่นๆ'],
-    investment: ['หุ้น', 'กองทุน', 'อสังหาฯ', 'Crypto', 'อื่นๆ']
-};
+import axios from 'axios';
 
 const PAYMENT_METHODS = ['เงินสด', 'โอน', 'บัตรเครดิต', 'QR'];
 
 export default function TransactionModal({ show, onClose, accounts, editingTransaction = null }) {
+    const { categories: allCategories } = usePage().props;
+    const [isScanning, setIsScanning] = useState(false);
+    const slipInput = useRef();
+
     const { data, setData, post, put, processing, errors, reset } = useForm({
         account_id: '',
         category_name: '',
@@ -25,13 +23,14 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
         type: 'expense',
         description: '',
         merchant: '',
-        payment_method: 'เงินสด',
+        payment_method: 'โอน',
         tags: [],
         status: 'completed',
         is_recurring: false,
         is_essential: true,
         date: new Date().toISOString().split('T')[0],
         to_account_id: '',
+        google_drive_file_id: '',
     });
 
     useEffect(() => {
@@ -51,6 +50,7 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
                     is_essential: editingTransaction.is_essential !== false,
                     date: editingTransaction.date ? new Date(editingTransaction.date).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
                     to_account_id: editingTransaction.to_account_id || '',
+                    google_drive_file_id: editingTransaction.google_drive_file_id || '',
                 });
             } else {
                 reset();
@@ -63,46 +63,74 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
 
     const submit = (e) => {
         e.preventDefault();
-        if (editingTransaction) {
-            put(route('transactions.update', editingTransaction.id), {
+        const url = editingTransaction ? route('transactions.update', editingTransaction.id) : route('transactions.store');
+        const method = editingTransaction ? 'patch' : 'post';
+
+        // Inertia doesn't support patch with files easily, but here we don't have files in the final submit
+        // unless we add them. For now, we just send the data.
+        if (method === 'patch') {
+            put(url, {
                 onSuccess: () => {
                     reset();
                     onClose();
-                    Swal.fire({
-                        title: 'สำเร็จ!',
-                        text: 'อัปเดตรายการเรียบร้อยแล้ว',
-                        icon: 'success',
-                        confirmButtonColor: '#3b82f6',
-                        timer: 2000,
-                        showConfirmButton: false,
-                    });
+                    Swal.fire('สำเร็จ!', 'อัปเดตรายการเรียบร้อยแล้ว', 'success');
                 },
             });
         } else {
-            post(route('transactions.store'), {
+            post(url, {
                 onSuccess: () => {
                     reset();
                     onClose();
-                    Swal.fire({
-                        title: 'สำเร็จ!',
-                        text: 'บันทึกรายการเรียบร้อยแล้ว',
-                        icon: 'success',
-                        confirmButtonColor: '#3b82f6',
-                        timer: 2000,
-                        showConfirmButton: false,
-                    });
+                    Swal.fire('สำเร็จ!', 'บันทึกรายการเรียบร้อยแล้ว', 'success');
                 },
             });
         }
     };
 
-    const toggleType = (type) => {
-        setData({
-            ...data,
-            type: type,
-            category_name: CATEGORIES[type] ? CATEGORIES[type][0] : '',
-        });
+    const handleSlipUpload = async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        setIsScanning(true);
+        const formData = new FormData();
+        formData.append('slip', file);
+
+        try {
+            const response = await axios.post(route('transactions.scan'), formData);
+            if (response.data.success) {
+                const { data: ocrData, google_drive_file_id } = response.data;
+                
+                setData(prev => ({
+                    ...prev,
+                    amount: ocrData.amount || prev.amount,
+                    date: ocrData.date || prev.date,
+                    google_drive_file_id: google_drive_file_id || prev.google_drive_file_id,
+                    payment_method: 'โอน', // Usually slips are transfers
+                    type: 'expense' // Default to expense for slips
+                }));
+
+                Swal.fire({
+                    title: 'อ่านสลิปสำเร็จ!',
+                    text: `พบยอดเงิน ฿${Number(ocrData.amount).toLocaleString()}`,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false,
+                });
+            }
+        } catch (error) {
+            console.error('Scan Error:', error);
+            Swal.fire('ผิดพลาด', 'ไม่สามารถอ่านสลิปได้ โปรดลองอีกครั้ง', 'error');
+        } finally {
+            setIsScanning(false);
+            slipInput.current.value = '';
+        }
     };
+
+    const toggleType = (type) => {
+        setData('type', type);
+    };
+
+    const filteredCategories = allCategories ? allCategories.filter(c => c.type === data.type) : [];
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="2xl">
@@ -111,9 +139,24 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
                     <h2 className="text-2xl font-black text-slate-800">
                         {editingTransaction ? 'แก้ไขรายการ' : 'บันทึกรายการใหม่'}
                     </h2>
-                    <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
-                    </button>
+                    <div className="flex gap-2">
+                        <button 
+                            type="button" 
+                            onClick={() => slipInput.current.click()}
+                            disabled={isScanning}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all ${isScanning ? 'bg-slate-100 text-slate-400' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 active:scale-95'}`}
+                        >
+                            {isScanning ? (
+                                <><div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div> กำลังอ่าน...</>
+                            ) : (
+                                <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg> สแกนสลิป</>
+                            )}
+                        </button>
+                        <input type="file" ref={slipInput} className="hidden" accept="image/*" onChange={handleSlipUpload} />
+                        <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                        </button>
+                    </div>
                 </div>
 
                 {/* Type Switcher */}
@@ -151,7 +194,6 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
                                 value={data.amount}
                                 onChange={(e) => setData('amount', e.target.value)}
                                 required
-                                autoFocus
                                 placeholder="0"
                             />
                         </div>
@@ -205,9 +247,10 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
                                     onChange={(e) => setData('category_name', e.target.value)}
                                 >
                                     <option value="">เลือกหมวดหมู่</option>
-                                    {CATEGORIES[data.type] && CATEGORIES[data.type].map((cat) => (
-                                        <option key={cat} value={cat}>{cat}</option>
+                                    {filteredCategories.map((cat) => (
+                                        <option key={cat.id} value={cat.name}>{cat.icon} {cat.name}</option>
                                     ))}
+                                    <option value="อื่นๆ">อื่นๆ</option>
                                 </select>
                             </div>
                         )}
@@ -215,80 +258,29 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
                         {/* Date */}
                         <div>
                             <InputLabel htmlFor="date" value="วันที่" className="font-bold text-slate-700 mb-1" />
-                            <TextInput
-                                id="date"
-                                type="date"
-                                className="block w-full"
-                                value={data.date}
-                                onChange={(e) => setData('date', e.target.value)}
-                                required
-                            />
+                            <TextInput id="date" type="date" className="block w-full" value={data.date} onChange={(e) => setData('date', e.target.value)} required />
                         </div>
 
                         {/* Merchant / Source */}
                         <div>
                             <InputLabel htmlFor="merchant" value={data.type === 'income' ? 'แหล่งที่มา/ผู้โอน' : 'ร้านค้า/ผู้รับเงิน'} className="font-bold text-slate-700 mb-1" />
-                            <TextInput
-                                id="merchant"
-                                className="block w-full"
-                                value={data.merchant}
-                                onChange={(e) => setData('merchant', e.target.value)}
-                                placeholder="เช่น นาย A, ร้านกาแฟ, เงินเดือน"
-                            />
+                            <TextInput id="merchant" className="block w-full" value={data.merchant} onChange={(e) => setData('merchant', e.target.value)} placeholder="เช่น นาย A, ร้านกาแฟ, เงินเดือน" />
                         </div>
 
-                        {/* Payment Method (for expense) */}
-                        {data.type === 'expense' && (
-                            <div>
-                                <InputLabel htmlFor="payment_method" value="วิธีชำระเงิน" className="font-bold text-slate-700 mb-1" />
-                                <select
-                                    id="payment_method"
-                                    className="block w-full border-slate-200 bg-slate-50/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl shadow-sm py-3.5 px-5 transition-all font-medium text-slate-700"
-                                    value={data.payment_method}
-                                    onChange={(e) => setData('payment_method', e.target.value)}
-                                >
-                                    {PAYMENT_METHODS.map((method) => (
-                                        <option key={method} value={method}>{method}</option>
-                                    ))}
-                                </select>
-                            </div>
-                        )}
-
-                        {/* Extra Options Grid */}
-                        <div className="col-span-1 md:col-span-2 grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                            <label className="flex items-center gap-3 cursor-pointer group">
-                                <input 
-                                    type="checkbox" 
-                                    className="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500"
-                                    checked={data.is_recurring}
-                                    onChange={(e) => setData('is_recurring', e.target.checked)}
-                                />
-                                <span className="text-sm font-bold text-slate-600 group-hover:text-slate-800 transition-colors">รายการประจำ (Recurring)</span>
-                            </label>
-
-                            {data.type === 'expense' && (
-                                <label className="flex items-center gap-3 cursor-pointer group">
-                                    <input 
-                                        type="checkbox" 
-                                        className="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500"
-                                        checked={data.is_essential}
-                                        onChange={(e) => setData('is_essential', e.target.checked)}
-                                    />
-                                    <span className="text-sm font-bold text-slate-600 group-hover:text-slate-800 transition-colors">รายการจำเป็น (Essential)</span>
-                                </label>
-                            )}
+                        {/* Payment Method */}
+                        <div>
+                            <InputLabel htmlFor="payment_method" value="วิธีชำระเงิน" className="font-bold text-slate-700 mb-1" />
+                            <select id="payment_method" className="block w-full border-slate-200 bg-slate-50/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl shadow-sm py-3.5 px-5 font-medium text-slate-700" value={data.payment_method} onChange={(e) => setData('payment_method', e.target.value)}>
+                                {PAYMENT_METHODS.map((method) => (
+                                    <option key={method} value={method}>{method}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
                     <div>
                         <InputLabel htmlFor="description" value="หมายเหตุ / รายละเอียดเพิ่มเติม" className="font-bold text-slate-700 mb-1" />
-                        <textarea
-                            id="description"
-                            className="block w-full border-slate-200 bg-slate-50/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl shadow-sm py-3.5 px-5 transition-all font-medium text-slate-700 min-h-[100px]"
-                            value={data.description}
-                            onChange={(e) => setData('description', e.target.value)}
-                            placeholder="ระบุรายละเอียดรายการของคุณ"
-                        />
+                        <textarea id="description" className="block w-full border-slate-200 bg-slate-50/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl shadow-sm py-3.5 px-5 font-medium text-slate-700 min-h-[80px]" value={data.description} onChange={(e) => setData('description', e.target.value)} placeholder="ระบุรายละเอียดรายการของคุณ" />
                     </div>
                 </div>
 

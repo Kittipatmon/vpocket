@@ -8,8 +8,44 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+use App\Services\OcrService;
+use App\Services\GoogleDriveService;
+use Illuminate\Support\Facades\Storage;
+
 class TransactionController extends Controller
 {
+    public function scanSlip(Request $request, OcrService $ocrService, GoogleDriveService $driveService)
+    {
+        $request->validate([
+            'slip' => 'required|image|max:5120', // 5MB max
+        ]);
+
+        $user = Auth::user();
+        $file = $request->file('slip');
+        
+        // 1. Temporary save for OCR
+        $path = $file->store('temp_slips');
+        $fullPath = storage_path('app/private/' . $path);
+
+        // 2. Perform OCR
+        $ocrData = $ocrService->scan($fullPath);
+
+        // 3. Upload to Google Drive if connected
+        $googleFileId = null;
+        if ($user->google_token && $user->google_drive_folder_id) {
+            $googleFileId = $driveService->uploadSlip($user, $fullPath, $file->getClientOriginalName());
+        }
+
+        // 4. Cleanup temp file
+        Storage::delete($path);
+
+        return response()->json([
+            'success' => true,
+            'data' => $ocrData,
+            'google_drive_file_id' => $googleFileId,
+            'attachment_path' => $path // We might want to keep a local copy too if needed
+        ]);
+    }
     public function store(Request $request)
     {
         $validated = $request->validate([
