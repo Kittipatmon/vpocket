@@ -495,15 +495,23 @@ export default function Index({ transactions, accounts, summary, categoryBreakdo
                             {transactions.links && transactions.links.length > 3 && (
                                 <div className="flex flex-wrap justify-center gap-1 mt-8">
                                     {transactions.links.map((link, i) => (
-                                        <Link
-                                            key={i}
-                                            href={link.url}
-                                            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${link.active
-                                                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
-                                                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-100'
-                                                } ${!link.url ? 'opacity-50 cursor-not-allowed' : ''}`}
-                                            dangerouslySetInnerHTML={{ __html: link.label }}
-                                        />
+                                        link.url ? (
+                                            <Link
+                                                key={i}
+                                                href={link.url}
+                                                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${link.active
+                                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                                                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-100'
+                                                    }`}
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        ) : (
+                                            <span
+                                                key={i}
+                                                className="px-3 py-1.5 rounded-xl text-xs font-bold bg-white text-slate-300 border border-slate-100 opacity-50 cursor-not-allowed"
+                                                dangerouslySetInnerHTML={{ __html: link.label }}
+                                            />
+                                        )
                                     ))}
                                 </div>
                             )}

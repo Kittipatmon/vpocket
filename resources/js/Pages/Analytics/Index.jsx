@@ -105,18 +105,18 @@ export default function Index({ monthlyData, categoryData, savingsTrend, filters
                         </div>
                     </div>
 
-                    {/* 3. Net Balance Trend */}
+                    {/* 3. Monthly Savings Trend */}
                     <div className="bg-white p-8 rounded-[2rem] shadow-lg border border-blue-100/50">
                         <h3 className="text-xl font-black text-slate-800 mb-8 text-center">
-                            แนวโน้มเงินสะสมรายเดือน (ปี {filters.year + 543})
+                            แนวโน้มเงินออมรายเดือน (ปี {filters.year + 543})
                         </h3>
                         <div className="h-[400px] w-full">
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={savingsTrend}>
                                     <defs>
-                                        <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                                        <linearGradient id="colorSavings" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
@@ -128,12 +128,12 @@ export default function Index({ monthlyData, categoryData, savingsTrend, filters
                                     />
                                     <Area 
                                         type="monotone" 
-                                        dataKey="balance" 
-                                        name="เงินคงเหลือสะสม"
-                                        stroke="#3b82f6" 
+                                        dataKey="savings" 
+                                        name="เงินออมเดือนนี้"
+                                        stroke="#10b981" 
                                         strokeWidth={4}
                                         fillOpacity={1} 
-                                        fill="url(#colorBalance)" 
+                                        fill="url(#colorSavings)" 
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>

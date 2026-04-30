@@ -23,7 +23,10 @@ class ReportController extends Controller
             ->whereBetween('date', [$startDate, $endDate]);
 
         $allTransactions = $query->get();
-        $transactions = (clone $query)->orderBy('date', 'desc')->paginate(15)->withQueryString();
+        $transactions = (clone $query)->orderBy('date', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate(15)
+            ->withQueryString();
 
         // Summary Calculations (Based on ALL transactions in period)
         $summary = [

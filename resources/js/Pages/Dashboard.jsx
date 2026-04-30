@@ -10,12 +10,12 @@ import AccountList from '@/Pages/Dashboard/Partials/AccountList';
 import TransactionModal from '@/Pages/Dashboard/Partials/TransactionModal';
 import AccountModal from '@/Pages/Dashboard/Partials/AccountModal';
 
-export default function Dashboard({ 
-    accounts, 
-    recentTransactions, 
-    totalBalance, 
-    monthlyIncome, 
-    monthlyExpense, 
+export default function Dashboard({
+    accounts,
+    recentTransactions,
+    totalBalance,
+    monthlyIncome,
+    monthlyExpense,
     lastMonthExpense,
     totalSavings,
     savingsGoal,
@@ -60,12 +60,12 @@ export default function Dashboard({
                         </h2>
                     </div>
                     <div className="flex gap-3">
-                        <button
+                        {/* <button
                             onClick={() => setShowAccountModal(true)}
                             className="bg-white text-blue-600 border-2 border-blue-100 px-6 py-3 rounded-2xl font-bold shadow-sm hover:bg-blue-50 hover:border-blue-200 transition-all active:scale-95"
                         >
                             + เพิ่มกระเป๋าเงิน
-                        </button>
+                        </button> */}
                         <button
                             onClick={() => setShowTransactionModal(true)}
                             className="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-6 py-3 rounded-2xl font-bold shadow-xl shadow-blue-500/25 hover:-translate-y-0.5 hover:shadow-2xl transition-all active:scale-95"
@@ -88,12 +88,12 @@ export default function Dashboard({
                             monthlyIncome={monthlyIncome}
                             monthlyExpense={monthlyExpense}
                         />
-                        <SavingsGoalCard 
-                            goals={goals} 
+                        <SavingsGoalCard
+                            goals={goals}
                             accounts={accounts}
                         />
-                        <MonthlyExpenseCard 
-                            amount={monthlyExpense} 
+                        <MonthlyExpenseCard
+                            amount={monthlyExpense}
                             lastMonthAmount={lastMonthExpense}
                         />
                     </div>
@@ -101,8 +101,8 @@ export default function Dashboard({
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                         {/* Recent Transactions (Spans 2 columns on desktop) */}
                         <div className="lg:col-span-2">
-                            <RecentTransactions 
-                                transactions={recentTransactions} 
+                            <RecentTransactions
+                                transactions={recentTransactions}
                                 onEdit={openEditModal}
                             />
                         </div>
@@ -120,9 +120,9 @@ export default function Dashboard({
                 </div>
             </div>
 
-            <TransactionModal 
-                show={showTransactionModal} 
-                onClose={closeTransactionModal} 
+            <TransactionModal
+                show={showTransactionModal}
+                onClose={closeTransactionModal}
                 accounts={accounts}
                 categories={categories}
                 editingTransaction={editingTransaction}

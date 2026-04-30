@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/accounts', [\App\Http\Controllers\AccountManagementController::class, 'index'])->name('accounts.index');
     Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
+    Route::get('/market', [\App\Http\Controllers\MarketController::class, 'index'])->name('market.index');
     Route::get('/analytics', [\App\Http\Controllers\AnalyticsController::class, 'index'])->name('analytics.index');
 
     Route::post('/ocr/scan', [\App\Http\Controllers\OcrController::class, 'scan'])->name('ocr.scan');

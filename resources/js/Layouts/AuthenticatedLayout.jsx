@@ -37,6 +37,12 @@ export default function AuthenticatedLayout({ header, children }) {
                                     แดชบอร์ด
                                 </NavLink>
                                 <NavLink
+                                    href={route('market.index')}
+                                    active={route().current('market.index')}
+                                >
+                                    ตลาดหุ้น
+                                </NavLink>
+                                <NavLink
                                     href={route('accounts.index')}
                                     active={route().current('accounts.index')}
                                 >
@@ -166,6 +172,12 @@ export default function AuthenticatedLayout({ header, children }) {
                             active={route().current('dashboard')}
                         >
                             แดชบอร์ด
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            href={route('market.index')}
+                            active={route().current('market.index')}
+                        >
+                            ตลาดหุ้น
                         </ResponsiveNavLink>
                         <ResponsiveNavLink
                             href={route('accounts.index')}

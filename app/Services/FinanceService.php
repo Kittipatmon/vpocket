@@ -19,6 +19,7 @@ class FinanceService
         $recentTransactions = Transaction::with('category', 'account')
             ->where('user_id', $user->id)
             ->orderBy('date', 'desc')
+            ->orderBy('id', 'desc')
             ->limit(5)
             ->get();
             
