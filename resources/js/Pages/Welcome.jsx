@@ -82,7 +82,7 @@ export default function Welcome({ auth }) {
                                 <span className="w-2 h-2 bg-blue-500 rounded-full animate-ping"></span>
                                 เครื่องมือจัดการการเงินอัจฉริยะ
                             </div>
-                            <h1 className="text-4xl lg:text-7xl font-black text-blue-900 leading-[1.05] tracking-tight mb-8 mt-5">
+                            <h1 className="text-4xl lg:text-7xl font-extrabold text-blue-900 leading-[1.1] tracking-tight mb-8 mt-5">
                                 จัดการการเงิน <br />
                                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400">ให้เป็นเรื่องง่าย</span>
                             </h1>
@@ -146,13 +146,13 @@ export default function Welcome({ auth }) {
                                     <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-8 bg-slate-900 rounded-b-2xl z-20"></div>
                                     <div className="w-full h-full bg-blue-50 rounded-[2.5rem] overflow-hidden flex flex-col">
                                     <div className="pt-10 px-6 flex justify-between items-center">
-                                        <div className="text-lg font-black text-blue-700">VPOCKET</div>
+                                        <div className="text-lg font-extrabold text-blue-700 tracking-tight">VPOCKET</div>
                                         <div className="w-8 h-8 bg-blue-200 rounded-full flex items-center justify-center font-bold text-blue-700 text-xs">JD</div>
                                     </div>
 
                                     <div className="mt-6 mx-4 bg-gradient-to-br from-blue-500 to-blue-700 rounded-3xl p-6 text-white shadow-xl">
                                         <div className="text-[10px] opacity-75 font-bold mb-1 uppercase tracking-widest">ยอดเงินคงเหลือ</div>
-                                        <div className="text-3xl font-black mb-2 tracking-tighter">฿ 12,450.00</div>
+                                        <div className="text-3xl font-extrabold mb-2 tracking-tighter">฿ 12,450.00</div>
                                         <div className="h-[1px] bg-white/20 my-4"></div>
                                         <div className="flex justify-between items-center text-[10px] font-bold">
                                             <span>ค่าใช้จ่ายเดือนนี้</span>
@@ -179,7 +179,7 @@ export default function Welcome({ auth }) {
                                     </div>
 
                                     <div className="p-4">
-                                        <div className="bg-blue-600 text-white p-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-black shadow-lg">
+                                        <div className="bg-blue-600 text-white p-3 rounded-2xl flex items-center justify-center gap-2 text-xs font-bold shadow-lg">
                                             <span>+</span> เพิ่มรายการใหม่
                                         </div>
                                     </div>
@@ -194,8 +194,8 @@ export default function Welcome({ auth }) {
                 <section id="features" className="py-24 px-8 lg:px-16 bg-white">
                     <div className="max-w-7xl mx-auto">
                         <div className="text-blue-600 font-bold uppercase tracking-widest text-sm mb-4">ทำไมต้อง Vpocket?</div>
-                        <h2 className="text-4xl lg:text-5xl font-black text-slate-900 mb-6 leading-tight">ทุกสิ่งที่คุณต้องการ <br /> รวมอยู่ในที่เดียว</h2>
-                        <p className="text-slate-500 max-w-xl mb-16 leading-relaxed">ออกแบบมาเพื่อชีวิตยุคใหม่ ติดตาม แบ่งจ่าย และวิเคราะห์การเงินของคุณได้โดยไม่ต้องใช้ตารางคำนวณที่ยุ่งยาก</p>
+                        <h2 className="text-4xl lg:text-5xl font-extrabold text-slate-900 mb-6 leading-tight tracking-tight">ทุกสิ่งที่คุณต้องการ <br /> รวมอยู่ในที่เดียว</h2>
+                        <p className="text-slate-500 max-w-xl mb-16 leading-relaxed font-medium">ออกแบบมาเพื่อชีวิตยุคใหม่ ติดตาม แบ่งจ่าย และวิเคราะห์การเงินของคุณได้โดยไม่ต้องใช้ตารางคำนวณที่ยุ่งยาก</p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             {[
@@ -222,7 +222,7 @@ export default function Welcome({ auth }) {
                     </div>
                     <div className="relative z-10 max-w-4xl mx-auto text-center">
                         <div className="inline-block bg-white/20 text-white px-4 py-1.5 rounded-full text-xs font-bold border border-white/30 mb-8 uppercase tracking-widest">พร้อมเริ่มต้นหรือยัง?</div>
-                        <h2 className="text-4xl lg:text-6xl font-black text-white mb-8 leading-tight">ร่วมเป็นส่วนหนึ่งกับผู้ใช้งาน <br /> ที่จัดการเงินอย่างชาญฉลาด</h2>
+                        <h2 className="text-4xl lg:text-6xl font-extrabold text-white mb-8 leading-tight tracking-tight">ร่วมเป็นส่วนหนึ่งกับผู้ใช้งาน <br /> ที่จัดการเงินอย่างชาญฉลาด</h2>
                         <div className="flex flex-wrap justify-center gap-4">
                             <Link href={route('register')} className="bg-white text-blue-600 px-10 py-5 rounded-2xl font-black text-lg shadow-xl hover:-translate-y-1 transition-all">
                                 เริ่มต้นใช้งานฟรี

@@ -37,7 +37,7 @@ export default function RecentTransactions({ transactions, onEdit }) {
     };
 
     return (
-        <div className="bg-white rounded-[2rem] p-6 shadow-lg shadow-blue-900/5 border border-blue-100/50">
+        <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-blue-900/5 border border-blue-100/50">
             <div className="flex justify-between items-center mb-6">
                 <h4 className="text-lg font-black text-slate-800">รายการล่าสุด</h4>
                 <Link href={route('reports.index')} className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">ดูทั้งหมด</Link>
@@ -81,8 +81,19 @@ export default function RecentTransactions({ transactions, onEdit }) {
                                     className="p-2 rounded-xl bg-rose-100 text-rose-600 hover:bg-rose-600 hover:text-white transition-all shadow-sm"
                                     title="ลบ"
                                 >
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>
+                                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2M10 11v6M14 11v6"/></svg>
                                 </button>
+                                {tx.google_drive_file_id && (
+                                    <a 
+                                        href={`https://drive.google.com/file/d/${tx.google_drive_file_id}/view`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-2 rounded-xl bg-emerald-100 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                                        title="ดูสลิป"
+                                    >
+                                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                    </a>
+                                )}
                             </div>
                         </div>
                     </div>

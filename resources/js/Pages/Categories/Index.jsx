@@ -23,6 +23,7 @@ export default function Index({ categories, walletTypes }) {
 
     const { data: walletData, setData: setWalletData, post: postWallet, patch: patchWallet, processing: walletProcessing, errors: walletErrors, reset: resetWallet } = useForm({
         name: '',
+        classification: 'spending',
         icon: '💵',
         color: '#10b981',
     });
@@ -54,6 +55,7 @@ export default function Index({ categories, walletTypes }) {
         setEditingItem(type);
         setWalletData({
             name: type.name,
+            classification: type.classification || 'spending',
             icon: type.icon || '💵',
             color: type.color || '#10b981',
         });
@@ -111,10 +113,7 @@ export default function Index({ categories, walletTypes }) {
     };
 
     const handleDelete = (item, type = 'category') => {
-        if (!item.user_id) {
-            Swal.fire('ไม่สามารถลบได้', 'ไม่สามารถลบข้อมูลเริ่มต้นของระบบได้', 'error');
-            return;
-        }
+        // Removed restriction to allow editing/customizing system types
 
         Swal.fire({
             title: 'คุณแน่ใจหรือไม่?',
@@ -281,7 +280,7 @@ export default function Index({ categories, walletTypes }) {
                         </div>
                     </div>
                     <div className="mt-10 flex justify-between gap-3">
-                        {editingItem && editingItem.user_id && (
+                        {editingItem && (
                             <button type="button" onClick={() => handleDelete(editingItem)} className="px-6 py-3.5 rounded-2xl font-bold bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all">ลบ</button>
                         )}
                         <div className="flex gap-3 ml-auto">
@@ -304,6 +303,20 @@ export default function Index({ categories, walletTypes }) {
                             <TextInput id="w_name" className="block w-full" value={walletData.name} onChange={(e) => setWalletData('name', e.target.value)} required placeholder="เช่น บัญชีธุรกิจ, เงินเก็บส่วนตัว" />
                             <InputError message={walletErrors.name} className="mt-2" />
                         </div>
+                        <div>
+                            <InputLabel htmlFor="w_classification" value="หมวดหมู่หลัก (เพื่อสรุปยอดเงิน)" className="font-bold text-slate-700 mb-1" />
+                            <select 
+                                id="w_classification" 
+                                className="block w-full border-slate-200 bg-slate-50/50 focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 rounded-2xl py-3.5 px-5 font-medium text-slate-700 shadow-sm" 
+                                value={walletData.classification} 
+                                onChange={(e) => setWalletData('classification', e.target.value)} 
+                                required
+                            >
+                                <option value="spending">ใช้จ่ายทั่วไป</option>
+                                <option value="saving">การออม (เช่น บัญชีออมทรัพย์)</option>
+                                <option value="investment">การลงทุน (เช่น หุ้น, กองทุน)</option>
+                            </select>
+                        </div>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <InputLabel htmlFor="w_icon" value="ไอคอน (Emoji)" className="font-bold text-slate-700 mb-1" />
@@ -316,7 +329,7 @@ export default function Index({ categories, walletTypes }) {
                         </div>
                     </div>
                     <div className="mt-10 flex justify-between gap-3">
-                        {editingItem && editingItem.user_id && (
+                        {editingItem && (
                             <button type="button" onClick={() => handleDelete(editingItem, 'wallet')} className="px-6 py-3.5 rounded-2xl font-bold bg-rose-50 text-rose-500 hover:bg-rose-500 hover:text-white transition-all">ลบ</button>
                         )}
                         <div className="flex gap-3 ml-auto">

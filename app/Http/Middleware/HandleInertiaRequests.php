@@ -37,6 +37,10 @@ class HandleInertiaRequests extends Middleware
             'walletTypes' => $request->user() ? \App\Models\WalletType::where('user_id', $request->user()->id)
                 ->orWhereNull('user_id')
                 ->get() : [],
+            'categories' => $request->user() ? \App\Models\Category::where(function($query) use ($request) {
+                $query->where('user_id', $request->user()->id)
+                      ->orWhereNull('user_id');
+            })->get() : [],
         ];
     }
 }

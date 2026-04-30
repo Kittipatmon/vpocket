@@ -73,4 +73,9 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Account::class, 'account_members');
     }
+
+    public function goals()
+    {
+        return $this->hasMany(Goal::class);
+    }
 }

@@ -20,22 +20,25 @@ class ReportController extends Controller
 
         $query = Transaction::with(['category', 'account'])
             ->where('user_id', auth()->id())
-            ->whereBetween('date', [$startDate, $endDate])
-            ->orderBy('date', 'desc');
+            ->whereBetween('date', [$startDate, $endDate]);
 
-        $transactions = $query->get();
+        $allTransactions = $query->get();
+        $transactions = (clone $query)->orderBy('date', 'desc')->paginate(15)->withQueryString();
 
-        // Summary Calculations
+        // Summary Calculations (Based on ALL transactions in period)
         $summary = [
-            'total_income' => (float)$transactions->where('type', 'income')->sum('amount'),
-            'total_expense' => (float)$transactions->where('type', 'expense')->sum('amount'),
-            'total_saving' => (float)$transactions->where('type', 'saving')->sum('amount'),
-            'total_investment' => (float)$transactions->where('type', 'investment')->sum('amount'),
-            'net_balance' => (float)$transactions->where('type', 'income')->sum('amount') - $transactions->where('type', 'expense')->sum('amount')
+            'total_income' => (float)$allTransactions->where('type', 'income')->sum('amount'),
+            'total_expense' => (float)$allTransactions->where('type', 'expense')->sum('amount'),
+            'total_saving' => (float)$allTransactions->where('type', 'saving')->sum('amount'),
+            'total_investment' => (float)$allTransactions->where('type', 'investment')->sum('amount'),
+            'net_balance' => (float)$allTransactions->where('type', 'income')->sum('amount') 
+                           - $allTransactions->where('type', 'expense')->sum('amount')
+                           - $allTransactions->where('type', 'saving')->sum('amount')
+                           - $allTransactions->where('type', 'investment')->sum('amount')
         ];
 
         // Group by category for chart/breakdown
-        $categoryBreakdown = $transactions->where('type', 'expense')
+        $categoryBreakdown = $allTransactions->where('type', 'expense')
             ->groupBy('category_id')
             ->map(function ($group) {
                 return [
@@ -53,7 +56,10 @@ class ReportController extends Controller
             'filters' => [
                 'month' => (int)$month,
                 'year' => (int)$year
-            ]
+            ],
+            'categories' => \App\Models\Category::where('user_id', auth()->id())
+                ->orWhereNull('user_id')
+                ->get()
         ]);
     }
 }

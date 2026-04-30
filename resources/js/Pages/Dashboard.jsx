@@ -19,7 +19,10 @@ export default function Dashboard({
     lastMonthExpense,
     totalSavings,
     savingsGoal,
-    insights
+    spendableBalance,
+    insights,
+    categories,
+    goals
 }) {
     const [showTransactionModal, setShowTransactionModal] = useState(false);
     const [showAccountModal, setShowAccountModal] = useState(false);
@@ -52,7 +55,7 @@ export default function Dashboard({
                 <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
                     <div>
                         <p className="text-blue-600 font-bold text-sm uppercase tracking-widest mb-1">ยินดีต้อนรับกลับมา!</p>
-                        <h2 className="text-3xl font-black text-slate-800 tracking-tight">
+                        <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">
                             สรุปการเงินของคุณ
                         </h2>
                     </div>
@@ -81,12 +84,13 @@ export default function Dashboard({
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
                         <BalanceCard
                             totalBalance={totalBalance}
+                            spendableBalance={spendableBalance}
                             monthlyIncome={monthlyIncome}
                             monthlyExpense={monthlyExpense}
                         />
                         <SavingsGoalCard 
-                            current={totalSavings} 
-                            target={savingsGoal} 
+                            goals={goals} 
+                            accounts={accounts}
                         />
                         <MonthlyExpenseCard 
                             amount={monthlyExpense} 
@@ -94,7 +98,7 @@ export default function Dashboard({
                         />
                     </div>
 
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
                         {/* Recent Transactions (Spans 2 columns on desktop) */}
                         <div className="lg:col-span-2">
                             <RecentTransactions 
@@ -120,6 +124,7 @@ export default function Dashboard({
                 show={showTransactionModal} 
                 onClose={closeTransactionModal} 
                 accounts={accounts}
+                categories={categories}
                 editingTransaction={editingTransaction}
             />
 

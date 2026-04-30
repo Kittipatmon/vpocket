@@ -11,13 +11,15 @@ import axios from 'axios';
 
 const PAYMENT_METHODS = ['เงินสด', 'โอน', 'บัตรเครดิต', 'QR'];
 
-export default function TransactionModal({ show, onClose, accounts, editingTransaction = null }) {
-    const { categories: allCategories } = usePage().props;
+export default function TransactionModal({ show, onClose, accounts, categories: categoriesProp, editingTransaction = null }) {
+    const { categories: sharedCategories } = usePage().props;
+    const allCategories = categoriesProp || sharedCategories || [];
     const [isScanning, setIsScanning] = useState(false);
     const slipInput = useRef();
 
     const { data, setData, post, put, processing, errors, reset } = useForm({
         account_id: '',
+        category_id: '',
         category_name: '',
         amount: '',
         type: 'expense',
@@ -38,6 +40,7 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
             if (editingTransaction) {
                 setData({
                     account_id: editingTransaction.account_id || '',
+                    category_id: editingTransaction.category_id || '',
                     category_name: editingTransaction.category_name || '',
                     amount: editingTransaction.amount || '',
                     type: editingTransaction.type || 'expense',
@@ -63,11 +66,65 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
 
     const submit = (e) => {
         e.preventDefault();
+
+        // Balance Check for outgoing transactions
+        if (['expense', 'saving', 'investment', 'transfer'].includes(data.type)) {
+            const selectedAccount = accounts.find(acc => acc.id == data.account_id);
+            if (selectedAccount && Number(data.amount) > Number(selectedAccount.balance)) {
+                
+                // Calculate totals for Savings and Investment to show in the alert
+                const savingsAccounts = accounts.filter(acc => 
+                    ['Savings', 'ออมทรัพย์', 'ฝากประจำ', 'bank'].includes(acc.type)
+                );
+                const investmentAccounts = accounts.filter(acc => 
+                    ['Investment', 'ลงทุน', 'การลงทุน', 'investment'].includes(acc.type)
+                );
+                
+                const totalSavings = savingsAccounts.reduce((sum, acc) => sum + Number(acc.balance), 0);
+                const totalInvestment = investmentAccounts.reduce((sum, acc) => sum + Number(acc.balance), 0);
+
+                Swal.fire({
+                    title: 'ยอดเงินไม่เพียงพอ!',
+                    html: `
+                        <div class="text-left space-y-4">
+                            <p class="text-slate-600">ยอดเงินใน <b>${selectedAccount.name}</b> ไม่พอสำหรับรายการนี้ (ขาดอีก ฿${(Number(data.amount) - Number(selectedAccount.balance)).toLocaleString()})</p>
+                            <div class="bg-blue-50/50 rounded-2xl p-5 border border-blue-100">
+                                <p class="text-xs font-black text-blue-400 uppercase tracking-widest mb-3">ยอดเงินคงเหลืออื่นๆ ของคุณ</p>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xl">💰</span>
+                                            <span class="text-sm font-bold text-slate-600">การออมทั้งหมด</span>
+                                        </div>
+                                        <span class="font-black text-emerald-600">฿${totalSavings.toLocaleString()}</span>
+                                    </div>
+                                    <div class="flex justify-between items-center">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-xl">📈</span>
+                                            <span class="text-sm font-bold text-slate-600">การลงทุนทั้งหมด</span>
+                                        </div>
+                                        <span class="font-black text-blue-600">฿${totalInvestment.toLocaleString()}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-slate-400 text-center font-bold">* กรุณาเติมเงินหรือเลือกกระเป๋าเงินใบอื่น</p>
+                        </div>
+                    `,
+                    icon: 'error',
+                    confirmButtonText: 'ตกลง',
+                    confirmButtonColor: '#3b82f6',
+                    customClass: {
+                        popup: 'rounded-[2.5rem] p-8',
+                        confirmButton: 'rounded-2xl px-10 py-4 font-bold text-lg'
+                    }
+                });
+                return;
+            }
+        }
+
         const url = editingTransaction ? route('transactions.update', editingTransaction.id) : route('transactions.store');
         const method = editingTransaction ? 'patch' : 'post';
 
-        // Inertia doesn't support patch with files easily, but here we don't have files in the final submit
-        // unless we add them. For now, we just send the data.
         if (method === 'patch') {
             put(url, {
                 onSuccess: () => {
@@ -99,11 +156,12 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
             const response = await axios.post(route('transactions.scan'), formData);
             if (response.data.success) {
                 const { data: ocrData, google_drive_file_id } = response.data;
-                
+
                 setData(prev => ({
                     ...prev,
                     amount: ocrData.amount || prev.amount,
                     date: ocrData.date || prev.date,
+                    merchant: ocrData.bank || prev.merchant,
                     google_drive_file_id: google_drive_file_id || prev.google_drive_file_id,
                     payment_method: 'โอน', // Usually slips are transfers
                     type: 'expense' // Default to expense for slips
@@ -119,7 +177,8 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
             }
         } catch (error) {
             console.error('Scan Error:', error);
-            Swal.fire('ผิดพลาด', 'ไม่สามารถอ่านสลิปได้ โปรดลองอีกครั้ง', 'error');
+            const message = error.response?.data?.message || 'ไม่สามารถอ่านสลิปได้ โปรดลองอีกครั้ง';
+            Swal.fire('ผิดพลาด', message, 'error');
         } finally {
             setIsScanning(false);
             slipInput.current.value = '';
@@ -127,10 +186,17 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
     };
 
     const toggleType = (type) => {
-        setData('type', type);
+        setData(prev => ({
+            ...prev,
+            type: type,
+            category_id: '',
+            category_name: ''
+        }));
     };
 
-    const filteredCategories = allCategories ? allCategories.filter(c => c.type === data.type) : [];
+    const filteredCategories = Array.isArray(allCategories)
+        ? allCategories.filter(c => c.type === data.type)
+        : [];
 
     return (
         <Modal show={show} onClose={onClose} maxWidth="2xl">
@@ -140,8 +206,8 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
                         {editingTransaction ? 'แก้ไขรายการ' : 'บันทึกรายการใหม่'}
                     </h2>
                     <div className="flex gap-2">
-                        <button 
-                            type="button" 
+                        <button
+                            type="button"
                             onClick={() => slipInput.current.click()}
                             disabled={isScanning}
                             className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold transition-all ${isScanning ? 'bg-slate-100 text-slate-400' : 'bg-emerald-50 text-emerald-600 hover:bg-emerald-100 active:scale-95'}`}
@@ -149,12 +215,12 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
                             {isScanning ? (
                                 <><div className="w-4 h-4 border-2 border-emerald-600 border-t-transparent rounded-full animate-spin"></div> กำลังอ่าน...</>
                             ) : (
-                                <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg> สแกนสลิป</>
+                                <><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12" /></svg> สแกนสลิป</>
                             )}
                         </button>
                         <input type="file" ref={slipInput} className="hidden" accept="image/*" onChange={handleSlipUpload} />
                         <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                         </button>
                     </div>
                 </div>
@@ -166,16 +232,15 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
                             key={type}
                             type="button"
                             onClick={() => toggleType(type)}
-                            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${
-                                data.type === type 
-                                ? 'bg-white text-blue-600 shadow-md scale-[1.02]' 
-                                : 'text-slate-500 hover:text-slate-700'
-                            }`}
+                            className={`flex-1 py-3 px-4 rounded-xl text-sm font-bold transition-all whitespace-nowrap ${data.type === type
+                                    ? 'bg-white text-blue-600 shadow-md scale-[1.02]'
+                                    : 'text-slate-500 hover:text-slate-700'
+                                }`}
                         >
-                            {type === 'expense' ? 'รายจ่าย' : 
-                             type === 'income' ? 'รายรับ' : 
-                             type === 'saving' ? 'การออม' : 
-                             type === 'investment' ? 'ลงทุน' : 'โอนเงิน'}
+                            {type === 'expense' ? 'รายจ่าย' :
+                                type === 'income' ? 'รายรับ' :
+                                    type === 'saving' ? 'การออม' :
+                                        type === 'investment' ? 'ลงทุน' : 'โอนเงิน'}
                         </button>
                     ))}
                 </div>
@@ -243,14 +308,32 @@ export default function TransactionModal({ show, onClose, accounts, editingTrans
                                 <select
                                     id="category_name"
                                     className="block w-full border-slate-200 bg-slate-50/50 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 rounded-2xl shadow-sm py-3.5 px-5 transition-all font-medium text-slate-700"
-                                    value={data.category_name}
-                                    onChange={(e) => setData('category_name', e.target.value)}
+                                    value={data.category_id || data.category_name}
+                                    onChange={(e) => {
+                                        const val = e.target.value;
+                                        const cat = filteredCategories.find(c => c.id == val || c.name === val);
+                                        if (cat) {
+                                            setData(prev => ({
+                                                ...prev,
+                                                category_id: cat.id,
+                                                category_name: cat.name
+                                            }));
+                                        } else {
+                                            setData(prev => ({
+                                                ...prev,
+                                                category_id: '',
+                                                category_name: val
+                                            }));
+                                        }
+                                    }}
                                 >
                                     <option value="">เลือกหมวดหมู่</option>
-                                    {filteredCategories.map((cat) => (
-                                        <option key={cat.id} value={cat.name}>{cat.icon} {cat.name}</option>
-                                    ))}
-                                    <option value="อื่นๆ">อื่นๆ</option>
+                                    {filteredCategories.length > 0 ? (
+                                        filteredCategories.map((cat) => (
+                                            <option key={cat.id} value={cat.id}>{cat.icon} {cat.name}</option>
+                                        ))
+                                    ) : null}
+                                    <option value="อื่นๆ"></option>
                                 </select>
                             </div>
                         )}

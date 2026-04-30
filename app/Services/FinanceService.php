@@ -49,9 +49,69 @@ class FinanceService
             ->whereBetween('date', [$startOfLastMonth, $endOfLastMonthSameDay])
             ->sum('amount');
 
-        // Savings Data
-        $savingsTypes = ['Savings', 'Fixed Deposit', 'Investment', 'ออมทรัพย์', 'ฝากประจำ', 'ลงทุน'];
-        $totalSavings = $accounts->whereIn('type', $savingsTypes)->sum('balance');
+        // Get dynamic classifications from WalletType model
+        $walletTypes = \App\Models\WalletType::all();
+        
+        $savingTypeNames = $walletTypes->where('classification', 'saving')->pluck('name')->toArray();
+        $investmentTypeNames = $walletTypes->where('classification', 'investment')->pluck('name')->toArray();
+
+        // Add legacy/common type names for backward compatibility
+        $savingTypeNames = array_merge($savingTypeNames, ['Savings', 'Savings Account', 'bank', 'ออมทรัพย์']);
+        $investmentTypeNames = array_merge($investmentTypeNames, ['Investment', 'Stock', 'Crypto', 'ลงทุน', 'การลงทุน', 'investment']);
+
+        // Aggregate data using dynamic classifications
+        $totalSavings = $accounts->whereIn('type', $savingTypeNames)->unique('id')->sum('balance');
+        $totalInvestment = $accounts->whereIn('type', $investmentTypeNames)->unique('id')->sum('balance');
+
+        // Goals Data
+        $goals = $user->goals()->get();
+        if ($goals->isEmpty()) {
+            // Create default Saving Goal
+            $savingGoal = $user->goals()->create([
+                'name' => 'การออม',
+                'type' => 'saving',
+                'target_amount' => $user->savings_goal ?: 100000,
+                'current_amount' => $totalSavings,
+                'icon' => '🏦',
+                'color' => '#10b981'
+            ]);
+            
+            // Create default Investment Goal
+            $investmentGoal = $user->goals()->create([
+                'name' => 'การลงทุน',
+                'type' => 'investment',
+                'target_amount' => 100000,
+                'current_amount' => $totalInvestment,
+                'icon' => '📈',
+                'color' => '#3b82f6'
+            ]);
+            
+            $goals = collect([$savingGoal, $investmentGoal]);
+        } else {
+            // Update current amounts dynamically
+            foreach ($goals as $goal) {
+                if ($goal->account_id) {
+                    // Link to specific account balance
+                    $linkedAccount = $accounts->firstWhere('id', $goal->account_id);
+                    if ($linkedAccount) {
+                        $goal->current_amount = $linkedAccount->balance;
+                    }
+                } else {
+                    // Fallback to type-based aggregation
+                    if ($goal->type === 'saving' || $goal->name === 'การออม') {
+                        $goal->current_amount = $totalSavings;
+                    } elseif ($goal->type === 'investment' || $goal->name === 'การลงทุน') {
+                        $goal->current_amount = $totalInvestment;
+                    }
+                }
+                
+                // Only save if dirty to avoid unnecessary queries
+                if ($goal->isDirty('current_amount')) {
+                    $goal->save();
+                }
+            }
+        }
+        
         $savingsGoal = $user->savings_goal; 
 
         // Insights Data
@@ -84,6 +144,7 @@ class FinanceService
             'accounts' => $accounts,
             'recentTransactions' => $recentTransactions,
             'totalBalance' => (float)$totalBalance,
+            'spendableBalance' => (float)($totalBalance - ($totalSavings + $totalInvestment)),
             'monthlyIncome' => (float)$income,
             'monthlyExpense' => (float)$expense,
             'lastMonthExpense' => (float)$lastMonthMTDExpense,
@@ -97,7 +158,8 @@ class FinanceService
                 ] : null,
                 'budget' => $budgetInfo,
                 'savingsPercent' => $savingsGoal > 0 ? round(($totalSavings / $savingsGoal) * 100) : 0
-            ]
+            ],
+            'goals' => $goals
         ];
     }
 }

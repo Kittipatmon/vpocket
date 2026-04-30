@@ -33,7 +33,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/accounts/{account}', [\App\Http\Controllers\AccountController::class, 'destroy'])->name('accounts.destroy');
     
     Route::post('/transactions', [\App\Http\Controllers\TransactionController::class, 'store'])->name('transactions.store');
-    Route::post('/transactions/scan', [\App\Http\Controllers\TransactionController::class, 'scanSlip'])->name('transactions.scan');
+    Route::delete('/transactions/bulk', [\App\Http\Controllers\TransactionController::class, 'bulkDestroy'])->name('transactions.bulk-destroy');
     Route::patch('/transactions/{transaction}', [\App\Http\Controllers\TransactionController::class, 'update'])->name('transactions.update');
     Route::resource('transactions', \App\Http\Controllers\TransactionController::class)->only(['store', 'update', 'destroy']);
 
@@ -46,9 +46,15 @@ Route::middleware('auth')->group(function () {
     Route::patch('/wallet-types/{walletType}', [\App\Http\Controllers\WalletTypeController::class, 'update'])->name('wallet-types.update');
     Route::delete('/wallet-types/{walletType}', [\App\Http\Controllers\WalletTypeController::class, 'destroy'])->name('wallet-types.destroy');
 
+    Route::post('/goals', [\App\Http\Controllers\GoalController::class, 'store'])->name('goals.store');
+    Route::patch('/goals/{goal}', [\App\Http\Controllers\GoalController::class, 'update'])->name('goals.update');
+    Route::delete('/goals/{goal}', [\App\Http\Controllers\GoalController::class, 'destroy'])->name('goals.destroy');
+
     Route::get('/accounts', [\App\Http\Controllers\AccountManagementController::class, 'index'])->name('accounts.index');
     Route::get('/reports', [\App\Http\Controllers\ReportController::class, 'index'])->name('reports.index');
     Route::get('/analytics', [\App\Http\Controllers\AnalyticsController::class, 'index'])->name('analytics.index');
+
+    Route::post('/ocr/scan', [\App\Http\Controllers\OcrController::class, 'scan'])->name('ocr.scan');
 });
 
 require __DIR__.'/auth.php';

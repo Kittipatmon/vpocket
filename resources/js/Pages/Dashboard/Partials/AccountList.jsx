@@ -44,9 +44,9 @@ export default function AccountList({ accounts, onAddAccount, onEditAccount }) {
     };
 
     return (
-        <div className="bg-white rounded-[2rem] p-6 shadow-lg shadow-blue-900/5 border border-blue-100/50">
+        <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-blue-900/5 border border-blue-100/50">
             <div className="flex justify-between items-center mb-6">
-                <h4 className="text-lg font-black text-slate-800">กระเป๋าเงินของฉัน</h4>
+                <h4 className="text-lg font-extrabold text-slate-800 tracking-tight">กระเป๋าเงินของฉัน</h4>
                 <Link href={route('accounts.index')} className="text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">จัดการ</Link>
             </div>
 
@@ -55,11 +55,11 @@ export default function AccountList({ accounts, onAddAccount, onEditAccount }) {
                     <div 
                         key={account.id} 
                         onClick={() => onEditAccount(account)}
-                        className="p-5 rounded-2xl bg-blue-50/50 border border-blue-100 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/5 transition-all group relative cursor-pointer"
+                        className="p-5 rounded-2xl bg-blue-50/50 border border-blue-100 hover:bg-blue-50 hover:shadow-lg hover:shadow-blue-500/5 transition-all group relative cursor-pointer flex flex-col min-h-[160px]"
                     >
                         <div className="flex justify-between items-start mb-4">
                             <div
-                                className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm text-xl overflow-hidden bg-white border border-slate-100"
+                                className="w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm text-xl overflow-hidden bg-white border border-slate-100 shrink-0"
                                 style={{ backgroundColor: !account.image_path ? (account.color || '#DBEAFE') : 'white' }}
                             >
                                 {account.image_path ? (
@@ -70,7 +70,7 @@ export default function AccountList({ accounts, onAddAccount, onEditAccount }) {
                             </div>
                             
                             <div className="flex flex-col items-end gap-2">
-                                <span className="text-[10px] font-black uppercase tracking-wider bg-white px-2.5 py-1 rounded-lg text-blue-600 border border-blue-100">
+                                <span className="text-[10px] font-bold uppercase tracking-wider bg-white px-2.5 py-1 rounded-lg text-blue-600 border border-blue-100 whitespace-nowrap">
                                     {account.type === 'Cash' ? 'เงินสด' : 
                                      account.type === 'Savings' ? 'ออมทรัพย์' : 
                                      account.type === 'PromptPay' ? 'พร้อมเพย์' : 
@@ -103,8 +103,10 @@ export default function AccountList({ accounts, onAddAccount, onEditAccount }) {
                                 </div>
                             </div>
                         </div>
-                        <p className="text-sm font-bold text-slate-500 mb-1">{account.name}</p>
-                        <p className="text-xl font-black text-slate-800 tracking-tight">฿{Number(account.balance).toLocaleString()}</p>
+                        <div className="mt-auto">
+                            <p className="text-sm font-bold text-slate-500 mb-1">{account.name}</p>
+                            <p className="text-xl font-extrabold text-slate-800 tracking-tight">฿{Number(account.balance).toLocaleString()}</p>
+                        </div>
                     </div>
                 ))}
                 <button 

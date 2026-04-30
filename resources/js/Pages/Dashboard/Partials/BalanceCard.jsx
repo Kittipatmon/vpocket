@@ -1,42 +1,53 @@
-import React from 'react';
-
-export default function BalanceCard({ totalBalance, monthlyIncome, monthlyExpense }) {
+export default function BalanceCard({ totalBalance, spendableBalance, monthlyIncome, monthlyExpense }) {
     return (
-        <div className="rounded-[2rem] p-6 relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 shadow-2xl shadow-blue-500/20">
+        <div className="rounded-[2.5rem] p-8 relative overflow-hidden bg-gradient-to-br from-blue-700 via-blue-800 to-indigo-900 text-white shadow-2xl shadow-blue-900/30 border border-white/10 h-full flex flex-col justify-between group">
+            {/* Background decorative elements */}
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 blur-3xl group-hover:bg-white/20 transition-all duration-1000"></div>
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-blue-400/20 rounded-full -ml-16 -mb-16 blur-2xl"></div>
+            
             <div className="relative z-10">
-                <p className="text-blue-100 font-bold text-sm uppercase tracking-widest mb-2">ยอดเงินคงเหลือทั้งหมด</p>
-                <h3 className="text-4xl font-black text-white mb-8 tracking-tight">
-                    ฿{(totalBalance || 0).toLocaleString()}
-                </h3>
-
-                <div className="flex gap-3">
-                    <div className="bg-white/10 rounded-2xl p-4 flex-1 backdrop-blur-md border border-white/10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-6 h-6 rounded-lg bg-green-400/30 flex items-center justify-center">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#4ade80" strokeWidth="3" strokeLinecap="round">
-                                    <path d="M12 19V5M5 12l7-7 7 7" />
-                                </svg>
-                            </div>
-                            <p className="text-blue-100 text-sm font-bold">รายรับ</p>
+                <div className="flex justify-between items-start mb-6">
+                    <div>
+                        <div className="flex items-center gap-2 mb-1">
+                            <p className="text-blue-100/60 font-bold text-[10px] uppercase tracking-[0.2em]">ยอดเงินคงเหลือทั้งหมด</p>
                         </div>
-                        <p className="text-white font-black text-2xl tracking-tight">฿{(monthlyIncome || 0).toLocaleString()}</p>
+                        <h3 className="text-4xl font-black text-white tracking-tighter">
+                            ฿{(totalBalance || 0).toLocaleString()}
+                        </h3>
                     </div>
-                    <div className="bg-white/10 rounded-2xl p-4 flex-1 backdrop-blur-md border border-white/10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <div className="w-6 h-6 rounded-lg bg-rose-400/30 flex items-center justify-center">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fb7185" strokeWidth="3" strokeLinecap="round">
-                                    <path d="M12 5v14M5 12l7 7 7-7" />
-                                </svg>
-                            </div>
-                            <p className="text-blue-100 text-sm font-bold">รายจ่าย</p>
-                        </div>
-                        <p className="text-white font-black text-2xl tracking-tight">฿{(monthlyExpense || 0).toLocaleString()}</p>
+                    <div className="bg-white/10 p-3.5 rounded-2xl border border-white/10 backdrop-blur-md shadow-inner">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+                            <rect x="2" y="5" width="20" height="14" rx="2" />
+                            <line x1="2" y1="10" x2="22" y2="10" />
+                        </svg>
+                    </div>
+                </div>
+
+                <div className="bg-white/10 rounded-3xl p-5 border border-white/10 backdrop-blur-md mb-8 shadow-lg">
+                    <p className="text-blue-200/60 font-bold text-[9px] uppercase tracking-widest mb-1.5">ยอดที่ใช้จ่ายได้ (หลังหักเงินออม/ลงทุน)</p>
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-2xl font-black text-emerald-400">฿{(spendableBalance || 0).toLocaleString()}</span>
+                        <span className="text-[10px] font-bold text-emerald-400/60 uppercase">Available</span>
                     </div>
                 </div>
             </div>
-            {/* Decorative circles */}
-            <div className="absolute -right-16 -top-16 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
-            <div className="absolute -left-16 -bottom-16 w-48 h-48 bg-blue-400/20 rounded-full blur-2xl"></div>
+
+            <div className="grid grid-cols-2 gap-6 relative z-10 pt-4 border-t border-white/5">
+                <div className="flex flex-col gap-1">
+                    <span className="text-[9px] font-bold text-blue-200/50 uppercase tracking-widest">รายรับเดือนนี้</span>
+                    <div className="flex items-center gap-1.5 text-white font-black">
+                        <span className="text-emerald-400 text-xs">↑</span>
+                        <span className="text-lg">฿{(monthlyIncome || 0).toLocaleString()}</span>
+                    </div>
+                </div>
+                <div className="flex flex-col gap-1">
+                    <span className="text-[9px] font-bold text-blue-200/50 uppercase tracking-widest">รายจ่ายเดือนนี้</span>
+                    <div className="flex items-center gap-1.5 text-white font-black">
+                        <span className="text-rose-400 text-xs">↓</span>
+                        <span className="text-lg">฿{(monthlyExpense || 0).toLocaleString()}</span>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }

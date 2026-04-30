@@ -12,6 +12,7 @@ class WalletTypeController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'classification' => 'required|string|in:spending,saving,investment',
             'icon' => 'nullable|string|max:255',
             'color' => 'nullable|string|max:7',
         ]);
@@ -25,17 +26,23 @@ class WalletTypeController extends Controller
 
     public function update(Request $request, WalletType $walletType)
     {
-        if ($walletType->user_id !== Auth::id()) {
+        if ($walletType->user_id !== null && $walletType->user_id !== Auth::id()) {
             abort(403);
         }
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'classification' => 'required|string|in:spending,saving,investment',
             'icon' => 'nullable|string|max:255',
             'color' => 'nullable|string|max:7',
         ]);
 
         $walletType->update($validated);
+        
+        if ($walletType->user_id === null) {
+            $walletType->user_id = Auth::id();
+            $walletType->save();
+        }
 
         return redirect()->back()->with('success', 'อัปเดตประเภทกระเป๋าเงินเรียบร้อยแล้ว');
     }
