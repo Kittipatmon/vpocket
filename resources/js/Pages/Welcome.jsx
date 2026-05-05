@@ -1,3 +1,4 @@
+import ApplicationLogo from '@/Components/ApplicationLogo';
 import { Head, Link } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
@@ -32,11 +33,7 @@ export default function Welcome({ auth }) {
                 {/* NAV */}
                 <nav className="fixed top-8 left-1/2 -translate-x-1/2 w-[90%] max-w-7xl bg-white/75 backdrop-blur-2xl border border-white/50 px-8 py-4 rounded-[2rem] flex justify-between items-center z-[1000] shadow-sm animate-in fade-in slide-in-from-top-10 duration-700">
                     <div className="flex items-center gap-3 text-2xl font-extrabold text-blue-600 tracking-tight">
-                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white">
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                            </svg>
-                        </div>
+                        <ApplicationLogo className="w-10 h-10 object-contain" />
                         <span>VPOCKET</span>
                     </div>
 

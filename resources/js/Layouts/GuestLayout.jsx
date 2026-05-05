@@ -13,11 +13,7 @@ export default function GuestLayout({ children }) {
             <div className="relative z-10 flex flex-col items-center w-full">
                 <div className="mb-8 transform hover:scale-110 transition-transform duration-300">
                     <Link href="/" className="flex flex-col items-center gap-3 no-underline">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white shadow-xl shadow-blue-500/20">
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="currentColor">
-                                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                            </svg>
-                        </div>
+                        <ApplicationLogo className="w-16 h-16 object-contain" />
                         <span className="text-2xl font-black text-blue-900 tracking-tighter">VPOCKET</span>
                     </Link>
                 </div>
